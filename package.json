@@ -1,6 +1,6 @@
 {
   "name": "a-route",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Express like routing as Custom Element or standalone",
   "main": "cjs/index.js",
   "scripts": {
