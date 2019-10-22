@@ -1,6 +1,6 @@
 {
   "name": "a-route",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Express like routing as Custom Element or standalone",
   "main": "cjs/index.js",
   "scripts": {
@@ -11,7 +11,11 @@
     "min": "uglifyjs index.js --support-ie8 --comments=/^!/ -c -m -o min.js",
     "size": "cat index.js | wc -c;cat min.js | wc -c;gzip -c9 min.js | wc -c;gzip -c9 new.js | wc -c"
   },
-  "keywords": ["routing", "route", "client"],
+  "keywords": [
+    "routing",
+    "route",
+    "client"
+  ],
   "author": "Andrea Giammarchi",
   "license": "ISC",
   "devDependencies": {
