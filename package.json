@@ -34,5 +34,13 @@
   "unpkg": "min.js",
   "dependencies": {
     "path-to-regexp": "^3.1.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WebReflection/a-route.git"
+  },
+  "bugs": {
+    "url": "https://github.com/WebReflection/a-route/issues"
+  },
+  "homepage": "https://github.com/WebReflection/a-route#readme"
 }

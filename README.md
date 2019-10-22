@@ -16,6 +16,8 @@ Express like routing, as Custom Element or standalone, inspired by [page.js](htt
 
 ### Example
 
+The following is a basic example, also [available live](https://webreflection.github.io/a-route/test/?).
+
 ```html
 <script src="//unpkg.com/a-route"></script>
 
