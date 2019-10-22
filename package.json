@@ -1,0 +1,34 @@
+{
+  "name": "a-route",
+  "version": "0.0.0",
+  "description": "Express like routing as Custom Element or standalone",
+  "main": "cjs/index.js",
+  "scripts": {
+    "build": "npm run cjs && npm run rollup:new && npm run rollup:babel && npm run min && npm run size",
+    "cjs": "ascjs esm cjs",
+    "rollup:new": "rollup --config rollup/new.config.js",
+    "rollup:babel": "rollup --config rollup/babel.config.js && drop-babel-typeof index.js",
+    "min": "uglifyjs index.js --support-ie8 --comments=/^!/ -c -m -o min.js",
+    "size": "cat index.js | wc -c;cat min.js | wc -c;gzip -c9 min.js | wc -c;gzip -c9 new.js | wc -c"
+  },
+  "keywords": ["routing", "route", "client"],
+  "author": "Andrea Giammarchi",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "ascjs": "^3.0.1",
+    "drop-babel-typeof": "^1.0.3",
+    "rollup": "^1.23.1",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^5.1.2",
+    "uglify-js": "^3.6.1"
+  },
+  "module": "esm/index.js",
+  "unpkg": "min.js",
+  "dependencies": {
+    "path-to-regexp": "^3.1.0"
+  }
+}

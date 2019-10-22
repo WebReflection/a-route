@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script>
+  if(this.customElements)
+    try{customElements.define('built-in',document.createElement('p').constructor,{'extends':'p'})}
+    catch(s){document.write('<script src="//unpkg.com/@ungap/custom-elements-builtin"><\x2fscript>')}
+  else
+    document.write('<script src="//unpkg.com/document-register-element"><\x2fscript>');
+  </script>
+  <script src="../index.js"></script>
+  <script>
+  var app = ARoute.app;
+
+  app.get('/test/', function (ctx, next) {
+    result.textContent = '/test/ ' + JSON.stringify(ctx, null, '  ');
+    next();
+  }, console.log);
+
+  // chainable
+  app
+    .get('/test/?query=:query', function (ctx, next) {
+      result.textContent = '/test/?query=:query ' + JSON.stringify(ctx, null, '  ');
+      next();
+    }, console.log)
+    .get('/test/:status', function (ctx, next) {
+      result.textContent = '/test/:status ' + JSON.stringify(ctx, null, '  ');
+      next();
+    }, console.log);
+
+  app.get('*', function (ctx, next) {
+    result.textContent = 'Not Found ' + JSON.stringify(ctx, null, '  ');
+    next();
+  }, console.error);
+  </script>
+</head>
+<body>
+    <a is="a-route" href="/test/?query=value">test query</a>
+    <a is="a-route" href="/test/OK" no-propagation>test OK</a>
+    <a is="a-route" href="/whatever">test 404</a>
+    <pre id="result"></pre>
+</body>
+</html>
