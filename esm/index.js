@@ -1,4 +1,4 @@
-import path2regexp from 'path-to-regexp';
+import pathToRegexp from 'path-to-regexp';
 
 const {create, freeze, keys} = Object;
 
@@ -46,31 +46,13 @@ const app = Class ? Class.app : freeze({
     return app;
   },
 
-  navigate(path) {
-    const {params, paths} = app._;
-    for (let key in paths) {
-      if (key === '*')
-        continue;
-      const info = paths[key];
-      const match = info.re.exec(path);
-      if (match) {
-        const ctx = {
-          path,
-          params: createParams(match, info.keys)
-        };
-        const all = keys(ctx.params).filter(byKey, params);
-        return (function param() {
-          if (all.length) {
-            const key = all.shift();
-            params[key](ctx, param, ctx.params[key]);
-          }
-          else
-            callNext(ctx, info.cb.slice(0));
-        }());
-      }
-    }
-    if ('*' in paths)
-      callNext({path}, paths['*'].cb.slice(0));
+  navigate(path, operation) {
+    navigate(
+      path,
+      !operation || operation === 'push' ? 1 : (
+        operation === 'replace' ? -1 : 0
+      )
+    );
   },
 
   param(name, cb) {
@@ -111,19 +93,15 @@ const ARoute = Class || class ARoute extends HTMLAnchorElement {
       event.stopPropagation();
     const {pathname, search, hash} = new URL(this.href);
     const path = pathname + search + hash;
-    if (this.hasAttribute('replace'))
-      history.replaceState(location.href, document.title, path);
-    else
-      history.pushState(location.href, document.title, path);
-    app.navigate(path);
+    navigate(path, this.hasAttribute('replace') ? -1 : 1);
   }
 }
 
 if (!Class) {
   customElements.define('a-route', ARoute, {extends: 'a'});
   addEventListener('popstate', function () {
-    const {pathname, search, hash} = new URL(location.href);
-    app.navigate(pathname + search + hash);
+    const {pathname, search, hash} = location;
+    navigate(pathname + search + hash, 0);
   });
 }
 
@@ -134,7 +112,7 @@ function asPath2RegExp(path, keys) {
     path = path.toString();
     path = path.slice(1, path.lastIndexOf('/'));
   }
-  return path2regexp(path, keys);
+  return pathToRegexp(path, keys);
 }
 
 function byKey(key) {
@@ -163,4 +141,35 @@ function createParams(match, keys) {
       params[keys[i - 1].name] = match[i];
   }
   return params;
+}
+
+function navigate(path, operation) {
+  const {params, paths} = app._;
+  if (operation < 0)
+    history.replaceState(location.href, document.title, path);
+  else if (operation)
+    history.pushState(location.href, document.title, path);
+  for (let key in paths) {
+    if (key === '*')
+      continue;
+    const info = paths[key];
+    const match = info.re.exec(path);
+    if (match) {
+      const ctx = {
+        path,
+        params: createParams(match, info.keys)
+      };
+      const all = keys(ctx.params).filter(byKey, params);
+      return (function param() {
+        if (all.length) {
+          const key = all.shift();
+          params[key](ctx, param, ctx.params[key]);
+        }
+        else
+          callNext(ctx, info.cb.slice(0));
+      }());
+    }
+  }
+  if ('*' in paths)
+    callNext({path}, paths['*'].cb.slice(0));
 }

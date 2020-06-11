@@ -9,7 +9,7 @@ Express like routing, as Custom Element or standalone, inspired by [page.js](htt
 
   * `app.get(path:string|RegExp, cb:Function[, cb2, ...]):app` to subscribe one or more callbacks for the specified route
   * `app.delete(path:string|RegExp, cb:Function[, cb2, ...]):app` to unsubscribe one or more callbacks for the specified route
-  * `app.navigate(path:string):void` to navigate to the first matching route for the given path
+  * `app.navigate(path:string[, operation:string = 'push']):void` to navigate to the first matching route for the given path. By default, it pushes to the history but it could `replace`, if the second parameter is the _replace_ string, or `ignore`.
   * `app.param(path:string|RegExp):app` to subscribe to a specific parameter regardless of the route
   * `app.use(path:string|RegExp):app` to subscribe a callback for a specific mount point or all of them
 

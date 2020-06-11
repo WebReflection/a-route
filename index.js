@@ -56,7 +56,7 @@ var ARoute = (function (exports) {
     return _setPrototypeOf(o, p);
   }
 
-  function isNativeReflectConstruct() {
+  function _isNativeReflectConstruct() {
     if (typeof Reflect === "undefined" || !Reflect.construct) return false;
     if (Reflect.construct.sham) return false;
     if (typeof Proxy === "function") return true;
@@ -70,7 +70,7 @@ var ARoute = (function (exports) {
   }
 
   function _construct(Parent, args, Class) {
-    if (isNativeReflectConstruct()) {
+    if (_isNativeReflectConstruct()) {
       _construct = Reflect.construct;
     } else {
       _construct = function _construct(Parent, args, Class) {
@@ -140,10 +140,31 @@ var ARoute = (function (exports) {
     return _assertThisInitialized(self);
   }
 
+  function _createSuper(Derived) {
+    var hasNativeReflectConstruct = _isNativeReflectConstruct();
+
+    return function _createSuperInternal() {
+      var Super = _getPrototypeOf(Derived),
+          result;
+
+      if (hasNativeReflectConstruct) {
+        var NewTarget = _getPrototypeOf(this).constructor;
+
+        result = Reflect.construct(Super, arguments, NewTarget);
+      } else {
+        result = Super.apply(this, arguments);
+      }
+
+      return _possibleConstructorReturn(this, result);
+    };
+  }
+
   /**
    * Expose `pathToRegexp`.
    */
   var pathToRegexp_1 = pathToRegexp;
+  var match_1 = match;
+  var regexpToFunction_1 = regexpToFunction;
   var parse_1 = parse;
   var compile_1 = compile;
   var tokensToFunction_1 = tokensToFunction;
@@ -254,6 +275,50 @@ var ARoute = (function (exports) {
 
   function compile(str, options) {
     return tokensToFunction(parse(str, options), options);
+  }
+  /**
+   * Create path match function from `path-to-regexp` spec.
+   */
+
+
+  function match(str, options) {
+    var keys = [];
+    var re = pathToRegexp(str, keys, options);
+    return regexpToFunction(re, keys);
+  }
+  /**
+   * Create a path match function from `path-to-regexp` output.
+   */
+
+
+  function regexpToFunction(re, keys) {
+    return function (pathname, options) {
+      var m = re.exec(pathname);
+      if (!m) return false;
+      var path = m[0];
+      var index = m.index;
+      var params = {};
+      var decode = options && options.decode || decodeURIComponent;
+
+      for (var i = 1; i < m.length; i++) {
+        if (m[i] === undefined) continue;
+        var key = keys[i - 1];
+
+        if (key.repeat) {
+          params[key.name] = m[i].split(key.delimiter).map(function (value) {
+            return decode(value, key);
+          });
+        } else {
+          params[key.name] = decode(m[i], key);
+        }
+      }
+
+      return {
+        path: path,
+        index: index,
+        params: params
+      };
+    };
   }
   /**
    * Expose a method for transforming tokens into the path function.
@@ -502,6 +567,8 @@ var ARoute = (function (exports) {
     /** @type {string} */
     path, keys, options);
   }
+  pathToRegexp_1.match = match_1;
+  pathToRegexp_1.regexpToFunction = regexpToFunction_1;
   pathToRegexp_1.parse = parse_1;
   pathToRegexp_1.compile = compile_1;
   pathToRegexp_1.tokensToFunction = tokensToFunction_1;
@@ -536,49 +603,8 @@ var ARoute = (function (exports) {
 
       return app;
     },
-    navigate: function navigate(path) {
-      var _app$_ = app._,
-          params = _app$_.params,
-          paths = _app$_.paths;
-
-      var _loop = function _loop(key) {
-        if (key === '*') return "continue";
-        var info = paths[key];
-        var match = info.re.exec(path);
-
-        if (match) {
-          var ctx = {
-            path: path,
-            params: createParams(match, info.keys)
-          };
-          var all = keys(ctx.params).filter(byKey, params);
-          return {
-            v: function param() {
-              if (all.length) {
-                var _key = all.shift();
-
-                params[_key](ctx, param, ctx.params[_key]);
-              } else callNext(ctx, info.cb.slice(0));
-            }()
-          };
-        }
-      };
-
-      for (var key in paths) {
-        var _ret = _loop(key);
-
-        switch (_ret) {
-          case "continue":
-            continue;
-
-          default:
-            if (typeof(_ret) === "object") return _ret.v;
-        }
-      }
-
-      if ('*' in paths) callNext({
-        path: path
-      }, paths['*'].cb.slice(0));
+    navigate: function navigate(path, operation) {
+      _navigate(path, !operation || operation === 'push' ? 1 : operation === 'replace' ? -1 : 0);
     },
     param: function param(name, cb) {
       for (var params = app._.params, names = [].concat(name), i = 0, length = names.length; i < length; i++) {
@@ -601,15 +627,15 @@ var ARoute = (function (exports) {
     }
   });
 
-  var ARoute = Class ||
-  /*#__PURE__*/
-  function (_HTMLAnchorElement) {
+  var ARoute = Class || /*#__PURE__*/function (_HTMLAnchorElement) {
     _inherits(ARoute, _HTMLAnchorElement);
+
+    var _super = _createSuper(ARoute);
 
     function ARoute() {
       _classCallCheck(this, ARoute);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(ARoute).apply(this, arguments));
+      return _super.apply(this, arguments);
     }
 
     _createClass(ARoute, [{
@@ -628,14 +654,14 @@ var ARoute = (function (exports) {
         event.preventDefault();
         if (this.hasAttribute('no-propagation')) event.stopPropagation();
 
-        var _ref = new URL(this.href),
-            pathname = _ref.pathname,
-            search = _ref.search,
-            hash = _ref.hash;
+        var _URL = new URL(this.href),
+            pathname = _URL.pathname,
+            search = _URL.search,
+            hash = _URL.hash;
 
         var path = pathname + search + hash;
-        if (this.hasAttribute('replace')) history.replaceState(location.href, document.title, path);else history.pushState(location.href, document.title, path);
-        app.navigate(path);
+
+        _navigate(path, this.hasAttribute('replace') ? -1 : 1);
       }
     }], [{
       key: "app",
@@ -645,19 +671,19 @@ var ARoute = (function (exports) {
     }]);
 
     return ARoute;
-  }(_wrapNativeSuper(HTMLAnchorElement));
+  }( /*#__PURE__*/_wrapNativeSuper(HTMLAnchorElement));
 
   if (!Class) {
     customElements.define('a-route', ARoute, {
       "extends": 'a'
     });
     addEventListener('popstate', function () {
-      var _ref2 = new URL(location.href),
-          pathname = _ref2.pathname,
-          search = _ref2.search,
-          hash = _ref2.hash;
+      var _location = location,
+          pathname = _location.pathname,
+          search = _location.search,
+          hash = _location.hash;
 
-      app.navigate(pathname + search + hash);
+      _navigate(pathname + search + hash, 0);
     });
   }
 
@@ -699,6 +725,52 @@ var ARoute = (function (exports) {
     }
 
     return params;
+  }
+
+  function _navigate(path, operation) {
+    var _app$_ = app._,
+        params = _app$_.params,
+        paths = _app$_.paths;
+    if (operation < 0) history.replaceState(location.href, document.title, path);else if (operation) history.pushState(location.href, document.title, path);
+
+    var _loop = function _loop(key) {
+      if (key === '*') return "continue";
+      var info = paths[key];
+      var match = info.re.exec(path);
+
+      if (match) {
+        var ctx = {
+          path: path,
+          params: createParams(match, info.keys)
+        };
+        var all = keys(ctx.params).filter(byKey, params);
+        return {
+          v: function param() {
+            if (all.length) {
+              var _key = all.shift();
+
+              params[_key](ctx, param, ctx.params[_key]);
+            } else callNext(ctx, info.cb.slice(0));
+          }()
+        };
+      }
+    };
+
+    for (var key in paths) {
+      var _ret = _loop(key);
+
+      switch (_ret) {
+        case "continue":
+          continue;
+
+        default:
+          if (typeof(_ret) === "object") return _ret.v;
+      }
+    }
+
+    if ('*' in paths) callNext({
+      path: path
+    }, paths['*'].cb.slice(0));
   }
 
   exports.ARoute = ARoute;
