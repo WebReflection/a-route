@@ -769,13 +769,8 @@ var ARoute = (function (exports) {
     for (var key in paths) {
       var _ret = _loop(key);
 
-      switch (_ret) {
-        case "continue":
-          continue;
-
-        default:
-          if (typeof(_ret) === "object") return _ret.v;
-      }
+      if (_ret === "continue") continue;
+      if (typeof(_ret) === "object") return _ret.v;
     }
 
     if ('*' in paths) callNext({
