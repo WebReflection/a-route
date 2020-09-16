@@ -84,11 +84,18 @@ const app = Class ? Class.app : freeze({
   }
 });
 
+const isModifiedEvent = ({metaKey, altKey, ctrlKey, shiftKey}) =>
+  !!(metaKey || altKey || ctrlKey || shiftKey);
+
 const ARoute = Class || class ARoute extends HTMLAnchorElement {
   static get app() { return app; }
   connectedCallback() { this.addEventListener('click', this); }
   disconnectedCallback() { this.removeEventListener('click', this); }
   handleEvent(event) {
+    // Let the browser handle modified click events (ctrl-click etc.)
+    if (isModifiedEvent(event))
+      return;
+
     event.preventDefault();
     if (this.hasAttribute('no-propagation'))
       event.stopPropagation();

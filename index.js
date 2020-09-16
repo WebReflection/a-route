@@ -627,6 +627,14 @@ var ARoute = (function (exports) {
     }
   });
 
+  var isModifiedEvent = function isModifiedEvent(_ref) {
+    var metaKey = _ref.metaKey,
+        altKey = _ref.altKey,
+        ctrlKey = _ref.ctrlKey,
+        shiftKey = _ref.shiftKey;
+    return !!(metaKey || altKey || ctrlKey || shiftKey);
+  };
+
   var ARoute = Class || /*#__PURE__*/function (_HTMLAnchorElement) {
     _inherits(ARoute, _HTMLAnchorElement);
 
@@ -651,6 +659,8 @@ var ARoute = (function (exports) {
     }, {
       key: "handleEvent",
       value: function handleEvent(event) {
+        // Let the browser handle modified click events (ctrl-click etc.)
+        if (isModifiedEvent(event)) return;
         event.preventDefault();
         if (this.hasAttribute('no-propagation')) event.stopPropagation();
 
